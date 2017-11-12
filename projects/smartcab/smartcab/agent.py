@@ -40,6 +40,12 @@ class LearningAgent(Agent):
         # Update additional class parameters as needed
         # If 'testing' is True, set epsilon and alpha to 0
 
+        if testing:
+            self.epsilon = 0
+            self.alpha = 0
+        else:
+            self.epsilon = self.epsilon - 0.05
+
         return None
 
     def build_state(self):
@@ -62,7 +68,7 @@ class LearningAgent(Agent):
         # With the hand-engineered features, this learning process gets entirely negated.
 
         # Set 'state' as a tuple of relevant data for the agent
-        state = None
+        state = (waypoint, inputs['light'], inputs['oncoming'], deadline)
 
         return state
 
@@ -90,6 +96,10 @@ class LearningAgent(Agent):
         # When learning, check if the 'state' is not in the Q-table
         # If it is not, create a new dictionary for that state
         #   Then, for each action available, set the initial Q-value to 0.0
+        default_action_value = [(x , 0.0) for x in self.valid_actions]
+
+        for s in state:
+            self.Q.setdefault(s, dict(default_action_value))
 
         return
 
@@ -109,7 +119,7 @@ class LearningAgent(Agent):
         # When not learning, choose a random action
         if self.learning == False:
             action = random.choice(self.valid_actions)
-            print "--> randomly choose " + str(action)
+
         # When learning, choose a random action with 'epsilon' probability
         # Otherwise, choose an action with the highest Q-value for the current state
         # Be sure that when choosing an action with highest Q-value that you randomly select between actions that "tie".
@@ -154,7 +164,7 @@ def run():
     #   verbose     - set to True to display additional output from the simulation
     #   num_dummies - discrete number of dummy agents in the environment, default is 100
     #   grid_size   - discrete number of intersections (columns, rows), default is (8, 6)
-    env = Environment()
+    env = Environment(verbose=False)
 
     ##############
     # Create the driving agent
@@ -162,7 +172,7 @@ def run():
     #   learning   - set to True to force the driving agent to use Q-learning
     #    * epsilon - continuous value for the exploration factor, default is 1
     #    * alpha   - continuous value for the learning rate, default is 0.5
-    agent = env.create_agent(LearningAgent)
+    agent = env.create_agent(LearningAgent, learning=True)
 
     ##############
     # Follow the driving agent
@@ -184,7 +194,7 @@ def run():
     # Flags:
     #   tolerance  - epsilon tolerance before beginning testing, default is 0.05
     #   n_test     - discrete number of testing trials to perform, default is 0
-    sim.run(n_test=10)
+    sim.run(n_test=20)
 
 
 if __name__ == '__main__':
