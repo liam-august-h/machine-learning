@@ -1,5 +1,5 @@
 import random
-import math
+#import math
 from environment import Agent, Environment
 from planner import RoutePlanner
 from simulator import Simulator
@@ -23,7 +23,7 @@ class LearningAgent(Agent):
         ## TO DO ##
         ###########
         # Set any additional class parameters as needed
-        self.trial = 0
+        self.trial = 1
 
 
     def reset(self, destination=None, testing=False):
@@ -44,10 +44,11 @@ class LearningAgent(Agent):
             self.epsilon = 0
             self.alpha = 0
         else:
-            #self.epsilon = self.epsilon - 0.02
-            #self.epsilon = pow(self.alpha, self.trial)
+            #self.epsilon = self.epsilon - 0.05
             self.epsilon =  1.0 / (self.trial ** 2)
             print "--> new epsilon " + str(self.epsilon) + " with step " + str(self.trial)
+
+            self.trial += 1
 
         return None
 
@@ -59,7 +60,7 @@ class LearningAgent(Agent):
         # Collect data about the environment
         waypoint = self.planner.next_waypoint() # The next waypoint
         inputs = self.env.sense(self)           # Visual input - intersection light and traffic
-        deadline = self.env.get_deadline(self)  # Remaining deadline
+        #deadline = self.env.get_deadline(self)  # Remaining deadline
 
         ###########
         ## TO DO ##
@@ -71,7 +72,8 @@ class LearningAgent(Agent):
         # With the hand-engineered features, this learning process gets entirely negated.
 
         # Set 'state' as a tuple of relevant data for the agent
-        state = (waypoint, inputs['light'], inputs['oncoming'])
+        state = (inputs['light'], inputs['right'], inputs['left'],
+                inputs['oncoming'], waypoint)
 
         return state
 
@@ -124,9 +126,13 @@ class LearningAgent(Agent):
         # When learning, choose a random action with 'epsilon' probability
         # Otherwise, choose an action with the highest Q-value for the current state
         # Be sure that when choosing an action with highest Q-value that you randomly select between actions that "tie".
-            item = random.choice(self.get_maxQ(state))
-            print "--> get_maxQ returns " + str(item) + " from " + str(self.Q[state])
-            action = item[0]
+            r = random.random()
+            if r <= self.epsilon:
+                action = random.choice(self.valid_actions)
+            else:
+                item = random.choice(self.get_maxQ(state))
+                print "--> get_maxQ returns " + str(item) + " from " + str(self.Q[state])
+                action = item[0]
 
         return action
 
@@ -199,7 +205,7 @@ def run():
     # Flags:
     #   tolerance  - epsilon tolerance before beginning testing, default is 0.05
     #   n_test     - discrete number of testing trials to perform, default is 0
-    sim.run(tolerance=0.01, n_test=10)
+    sim.run(tolerance=0.0004, n_test=10)
 
 if __name__ == '__main__':
     run()

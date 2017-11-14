@@ -7,7 +7,6 @@ warnings.filterwarnings("ignore", category = UserWarning, module = "matplotlib")
 
 import os
 import time
-import random
 import importlib
 import csv
 
@@ -143,7 +142,6 @@ class Simulator(object):
                 if trial > n_test:
                     break
 
-            a.trial = trial
             # Pretty print to terminal
             print
             print "/-------------------------"
