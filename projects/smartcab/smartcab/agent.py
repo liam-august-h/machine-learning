@@ -1,5 +1,5 @@
 import random
-#import math
+import math
 from environment import Agent, Environment
 from planner import RoutePlanner
 from simulator import Simulator
@@ -8,7 +8,7 @@ class LearningAgent(Agent):
     """ An agent that learns to drive in the Smartcab world.
         This is the object you will be modifying. """
 
-    def __init__(self, env, learning=False, epsilon=1.0, alpha=0.8):
+    def __init__(self, env, learning=False, epsilon=1.0, alpha=0.5):
         super(LearningAgent, self).__init__(env)     # Set the agent in the evironment
         self.planner = RoutePlanner(self.env, self)  # Create a route planner
         self.valid_actions = self.env.valid_actions  # The set of valid actions
@@ -24,7 +24,6 @@ class LearningAgent(Agent):
         ###########
         # Set any additional class parameters as needed
         self.trial = 1
-        self.cur_step_maxq = 0
 
 
     def reset(self, destination=None, testing=False):
@@ -41,15 +40,16 @@ class LearningAgent(Agent):
         # Update epsilon using a decay function of your choice
         # Update additional class parameters as needed
         # If 'testing' is True, set epsilon and alpha to 0
+
         if testing:
             self.epsilon = 0
             self.alpha = 0
         else:
-            #self.epsilon = self.epsilon - 0.05
-            #self.epsilon =  1.0 / (self.trial ** 2)
-            self.epsilon = self.epsilon * 0.95
-            #self.alpha = self.alpha * 0.9
-            print "--> new epsilon " + str(self.epsilon) + " with step " + str(self.trial)
+            #self.epsilon -= 0.05
+            self.epsilon = math.pow(self.alpha, self.trial)
+
+            #self.alpha = self.alpha * (1.0 + 1.0 / self.trial)
+            #self.alpha = min(self.alpha, 1.0)
 
             self.trial += 1
 
@@ -68,18 +68,15 @@ class LearningAgent(Agent):
         ###########
         ## TO DO ##
         ###########
-
         # NOTE : you are not allowed to engineer eatures outside of the inputs available.
         # Because the aim of this project is to teach Reinforcement Learning, we have placed
         # constraints in order for you to learn how to adjust epsilon and alpha, and thus learn about the balance between exploration and exploitation.
         # With the hand-engineered features, this learning process gets entirely negated.
 
         # Set 'state' as a tuple of relevant data for the agent
-        state = (inputs['light'], inputs['right'], inputs['left'],
-                inputs['oncoming'], waypoint)
-
+        state = (inputs['light'], inputs['left'], waypoint)
+        #state = (inputs['light'], waypoint)
         return state
-
 
     def get_maxQ(self, state):
         """ The get_max_Q function is called when the agent is asked to find the
@@ -90,8 +87,7 @@ class LearningAgent(Agent):
         ###########
         # Calculate the maximum Q-value of all actions for a given state
         x = self.Q[state].items()
-        x = sorted(x, key=lambda x : x[1], reverse=True)
-        max_value = x[0][1]
+        max_value = max(self.Q[state].values())
         action = random.choice(filter(lambda x : x[1] >= max_value, x))
         return action
 
@@ -131,9 +127,15 @@ class LearningAgent(Agent):
         # Be sure that when choosing an action with highest Q-value that you randomly select between actions that "tie".
             r = random.random()
             if r <= self.epsilon:
-                action = random.choice(self.valid_actions)
+                # try a new action
+                not_try_before = filter(lambda x : x[1] == 0, self.Q[state].items())
+                if len(not_try_before) == 0:
+                    action, _ = self.get_maxQ(state)
+                else:
+                    action = random.choice(not_try_before)
+                    action = action[0]
             else:
-                action, self.cur_step_maxq = self.get_maxQ(state)
+                action, _ = self.get_maxQ(state)
 
         return action
 
@@ -153,8 +155,8 @@ class LearningAgent(Agent):
             max_q_state_action = 0
         else:
             max_q_state_action = max([self.Q[new_state][x] for x in self.valid_actions])
-        self.Q[state][action] = (1 - self.alpha) * self.Q[state][action]\
-            + self.alpha * (reward + max_q_state_action)
+
+        self.Q[state][action] = (1 - self.alpha) * self.Q[state][action] + self.alpha * (reward + max_q_state_action)
 
         return
 
@@ -189,7 +191,7 @@ def run():
     #   learning   - set to True to force the driving agent to use Q-learning
     #    * epsilon - continuous value for the exploration factor, default is 1
     #    * alpha   - continuous value for the learning rate, default is 0.5
-    agent = env.create_agent(LearningAgent, learning=True, alpha=0.9)
+    agent = env.create_agent(LearningAgent, learning=True, epsilon=1.0, alpha=0.5)
 
     ##############
     # Follow the driving agent
@@ -211,7 +213,7 @@ def run():
     # Flags:
     #   tolerance  - epsilon tolerance before beginning testing, default is 0.05
     #   n_test     - discrete number of testing trials to perform, default is 0
-    sim.run(tolerance=0.0004, n_test=10)
+    sim.run(n_trail=50, n_test=10)
 
 if __name__ == '__main__':
     run()
