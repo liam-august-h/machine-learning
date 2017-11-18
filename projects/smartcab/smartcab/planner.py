@@ -1,5 +1,7 @@
 import random
 
+random.seed(1524)
+
 class RoutePlanner(object):
     """ Complex route planner that is meant for a perpendicular grid network. """
 
@@ -34,8 +36,8 @@ class RoutePlanner(object):
         # First check if destination is at location
         if dx == 0 and dy == 0:
             return None
-        
-        # Next check if destination is cardinally East or West of location    
+
+        # Next check if destination is cardinally East or West of location
         elif dx != 0:
 
             if dx * heading[0] > 0:  # Heading the correct East or West direction

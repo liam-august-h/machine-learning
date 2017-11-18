@@ -4,6 +4,7 @@ from environment import Agent, Environment
 from planner import RoutePlanner
 from simulator import Simulator
 
+random.seed(1524)
 class LearningAgent(Agent):
     """ An agent that learns to drive in the Smartcab world.
         This is the object you will be modifying. """
@@ -48,10 +49,7 @@ class LearningAgent(Agent):
             #self.epsilon -= 0.05
             self.epsilon = math.pow(self.alpha, self.trial)
 
-            #self.alpha = self.alpha * (1.0 + 1.0 / self.trial)
-            #self.alpha = min(self.alpha, 1.0)
-
-            self.trial += 1
+        self.trial += 1
 
         return None
 
@@ -191,7 +189,7 @@ def run():
     #   learning   - set to True to force the driving agent to use Q-learning
     #    * epsilon - continuous value for the exploration factor, default is 1
     #    * alpha   - continuous value for the learning rate, default is 0.5
-    agent = env.create_agent(LearningAgent, learning=True, epsilon=1.0, alpha=0.5)
+    agent = env.create_agent(LearningAgent, learning=True, epsilon=1.0, alpha=0.95)
 
     ##############
     # Follow the driving agent
@@ -213,7 +211,7 @@ def run():
     # Flags:
     #   tolerance  - epsilon tolerance before beginning testing, default is 0.05
     #   n_test     - discrete number of testing trials to perform, default is 0
-    sim.run(n_trail=50, n_test=10)
+    sim.run(tolerance=0.0001, n_test=20)
 
 if __name__ == '__main__':
     run()

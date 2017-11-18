@@ -4,6 +4,7 @@ import math
 from collections import OrderedDict
 from simulator import Simulator
 
+random.seed(1524)
 
 class TrafficLight(object):
     """A traffic light that switches periodically."""
