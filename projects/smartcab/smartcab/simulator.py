@@ -177,9 +177,9 @@ class Simulator(object):
                             self.pause()
 
                     # Update environment
-                    #if self.current_time - self.last_updated >= self.update_delay:
-                    self.env.step()
-                    self.last_updated = self.current_time
+                    if self.current_time - self.last_updated >= self.update_delay:
+                        self.env.step()
+                        self.last_updated = self.current_time
 
                     # Render text
                     self.render_text(trial, testing)
